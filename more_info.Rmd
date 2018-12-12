@@ -1,0 +1,69 @@
+---
+title: "More information"
+author: "Jessica Flohr, Lily Turner, and Sunshine Schneider"
+date: "Last updated on `r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    df_print: kable
+---
+
+<!--
+Comments in HTML are like this! 
+-->
+
+# SECTION NAME
+
+Write your "more information" section here.
+
+```{r}
+# Load necessary packages
+library(tidyverse)
+library(ggplot2)
+library(leaflet)
+library(sf)
+library(USAboundaries)
+library(leaflet.extras)
+
+# Data import for chart
+ag_productivity <- read.csv("ag_productivity.csv",
+                            stringsAsFactors=FALSE)
+
+# Data import for the leaflet map
+farmers_markets <- read.csv("farmers_markets.csv",
+                            stringsAsFactors=FALSE)
+
+# Define "support" as how many food assistance programs a market accepts as payment
+farmers_markets$support <- farmers_markets$WIC +
+  farmers_markets$WICcash + farmers_markets$SFMNP +
+  farmers_markets$SNAP
+farmers_markets$support <- cut(farmers_markets$support, 
+                               breaks=c(-Inf, .9, 1.9, 2.9, 3.9, Inf), 
+                 labels=c("0","1","2","3","4"))
+
+pal <- colorFactor(palette=c("red", "orange", "yellow",
+                             "green", "blue"),
+                   levels = c("0","1","2","3","4"))
+
+```
+
+```{r}
+leaflet(farmers_markets) %>% 
+  addProviderTiles("Esri") %>% 
+  addCircles(color = ~pal(support)) %>%
+  addResetMapButton()
+```
+
+```{r}
+ggplot(ag_productivity, aes(x = Year)) +
+  labs(title = "US Agricultural Productivity", 
+       x = "Year", y = "Productivity increase per year") +
+  geom_line(aes(y = Total_output, color = "Total output")) +
+  geom_line(aes(y = Livestock_and_products_All, 
+                color = "Livestock and products")) +
+  geom_line(aes(y = Crops_All, color = "Agricultural crops")) +
+  geom_line(aes(y = Intermediate_.goods_input_Pesticides, color = "Pesticides"))
+
+```
