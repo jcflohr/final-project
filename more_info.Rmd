@@ -10,6 +10,14 @@ output:
     df_print: kable
 ---
 
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Set R Markdown chunk defaults:
+knitr::opts_chunk$set(
+  echo = FALSE, message = FALSE, warning = FALSE, 
+  fig.width = 16/2, fig.height = 9/2
+)
+```
+
 <!--
 Comments in HTML are like this! 
 -->
