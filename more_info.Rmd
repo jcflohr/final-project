@@ -87,3 +87,36 @@ ggplot(ag_productivity, aes(x = Year)) +
   geom_line(aes(y = Crops_All, color = "Agricultural crops"))
 
 ```
+```{r}
+# Graphs on percent of farmer's markets that accept various food aid
+# Group by state, summarize state data into an average instead of per county
+
+# import Excel file
+farm_market <- read_excel("farm.market.xlsx")
+
+# summarize support programs a farmers market accepts
+sum_farm_support <- farm_market %>% 
+  group_by(State) %>% 
+  summarize(mean_SNAP = mean(PCT_FMRKT_SNAP16), 
+            mean_WICCASH = mean(PCT_FMRKT_WICCASH16), 
+            mean_SFNMP = mean(PCT_FMRKT_SFMNP16), 
+            mean_WIC = mean(PCT_FMRKT_WIC16))
+sum_farm_support[is.na(sum_farm_support)]<-0
+
+# tidy farm support data to be able to make graphs
+support_tidy <- gather(data = sum_farm_support, 
+                       key = Type ,
+                       value = Percent,
+                       -State) 
+
+# plotting graphs
+ggplot(data = support_tidy,
+       mapping = aes(x = Type, y = Percent, fill = Type)) +
+  geom_col() +
+  facet_wrap(~ State) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+```
+
