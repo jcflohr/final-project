@@ -25,3 +25,92 @@ Comments in HTML are like this!
 # SECTION ONE
 
 Write your blog post here.
+
+```{r}
+# Load necessary packages
+library(readxl)
+library(tidycensus)
+library(tidyverse)
+library(USAboundaries)
+library(maps)
+library(sf)
+library(leaflet)
+library(rgdal)
+library(ggplot2)
+
+##Part 1: Graphs on percent of farmer's markets that accept various food aid
+#Grouping by state and what-not, summarizing state data into an average instead of per county
+
+# import Excel file
+farm_market <- read_excel("farm.market.xlsx")
+
+# summarize support programs a farmers market accepts
+sum_farm_support <- farm_market %>% 
+  group_by(State) %>% 
+  summarize(mean_SNAP = mean(PCT_FMRKT_SNAP16), 
+            mean_WICCASH = mean(PCT_FMRKT_WICCASH16), 
+            mean_SFNMP = mean(PCT_FMRKT_SFMNP16), 
+            mean_WIC = mean(PCT_FMRKT_WIC16))
+sum_farm_support[is.na(sum_farm_support)]<-0
+
+# tidy farm support data to be able to make graphs
+support_tidy <- gather(data = sum_farm_support, 
+                       key = Type ,
+                       value = Percent,
+                       -State) 
+
+# plotting graphs
+ggplot(data = support_tidy,
+       mapping = aes(x = Type, y = Percent, fill = Type)) +
+  geom_col() +
+  facet_wrap(~ State) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+
+## Part 2: Graphing map of food insecure states
+# group data by states, including   both food insecure and very food insecure, but only ended up using food insecure data, so I can take that out later
+
+# import Excel data
+DTAA2 <- read_excel("DTAA2.xlsx")
+
+by_state <- DTAA2 %>%
+            group_by(State) %>%
+            summarize(mean_insecure = mean(FOODINSEC_13_15),
+                      mean_very_insecure = mean(VLFOODSEC_13_15))
+
+# input API key for census data
+census_api_key("c9530d0f8973e93c0d5bbb732df08804d80550d6",
+               overwrite = TRUE)
+
+# more tidycensus stuff
+states <- 
+  tidycensus::get_acs(geography = "state", 
+                      variables = "B01003_001", 
+                      geometry = TRUE) %>%
+  mutate(lon = purrr::map_dbl(geometry, ~sf::st_centroid(.x)[[1]]),
+         lat = purrr::map_dbl(geometry, ~sf::st_centroid(.x)[[2]])) 
+
+# change state names into abbreviations to merge tidycensus data and DTAA2
+states$NAME <- c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "PR")
+
+#Joining the datatsets
+sum_state <- states %>% 
+  inner_join(by_state, by = c("NAME" = "State"))
+#Dividing data into three tiers of food insecurity
+sum_state <- sum_state %>%
+  mutate(mean_insecure = cut_number(mean_insecure, 3))
+#Filtering out Puerto Rico, Alaska, and Hawaii so that graph is less ugly
+filter_sum_state <- sum_state %>% 
+  filter(!(NAME == "PR" | NAME == "AK" | NAME == "HI"))
+#Plotting of data 
+ggplot() +
+  geom_sf(data = filter_sum_state, aes(fill = mean_insecure), size = 0.5) +
+  geom_text(data = sum_state, aes(x = lon , y = lat, label = NA)) +
+  labs(fill = "mean")  +
+  scale_fill_brewer(palette = "YlOrRd")
+
+```
+
