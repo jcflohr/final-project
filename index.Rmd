@@ -10,7 +10,7 @@ output:
     df_print: kable
 ---
 
-```{r, echo=FALSE, message=FALSE, warning=FALSE}
+```{r, echo=FALSE, progress=FALSE, message=FALSE, warning=FALSE}
 # Set R Markdown chunk defaults:
 knitr::opts_chunk$set(
   echo = FALSE, message = FALSE, warning = FALSE, 
@@ -18,11 +18,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-<!--
-Comments in HTML are like this! 
--->
-
-# SECTION ONE
+# Food Insecurity in the Continental US
 
 Write your blog post here.
 
