@@ -22,8 +22,6 @@ knitr::opts_chunk$set(
 Comments in HTML are like this! 
 -->
 
-Write your "more information" section here.
-
 ```{r}
 # Load necessary packages
 library(tidyverse)
@@ -48,6 +46,14 @@ farmers_markets$support <- cut(farmers_markets$support,
                                breaks=c(-Inf, .9, 1.9, 2.9, 3.9, Inf), 
                  labels=c("0","1","2","3","4"))
 
+# Define "goods" as how many fresh diet essentials  market sells (vegetables, meat, fruits, and grains)
+farmers_markets$goods <- farmers_markets$Vegetables +
+  farmers_markets$Meat + farmers_markets$Fruits +
+  farmers_markets$Grains
+farmers_markets$goods <- cut(farmers_markets$goods, 
+                               breaks=c(-Inf, .9, 1.9, 2.9, 3.9, Inf), 
+                 labels=c("0","1","2","3","4"))
+
 pal <- colorFactor(palette=c("red", "orange", "yellow",
                              "green", "blue"),
                    levels = c("0","1","2","3","4"))
@@ -59,11 +65,13 @@ pal <- colorFactor(palette=c("red", "orange", "yellow",
 ```{r}
 leaflet(farmers_markets) %>% 
   addProviderTiles("Esri") %>% 
-  addCircles(color = ~pal(support)) %>%
+  addCircles(color = ~pal(support), group = "Support Programs") %>%
+  addCircles(color = ~pal(goods), group = "Farm Goods") %>%
+  addLayersControl(overlayGroups = c("Support", "Farm Goods"),
+                   options = layersControlOptions(collapsed = FALSE)) %>%
   addLegend(position = "topright",
             pal = pal,
-            title = "# of Programs",
-            values = c("0", "1", "2", "3", "4 or more")) %>%
+            values = c("0", "1", "2", "3", "4+")) %>%
   addResetMapButton()
 ```
 
