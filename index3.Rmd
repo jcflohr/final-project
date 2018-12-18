@@ -1,0 +1,113 @@
+---
+title: "My Final Project"
+author: "Guy Incognito"
+date: "Last updated on `r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    df_print: kable
+---
+
+<!--
+Comments in HTML are like this! 
+-->
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(USAboundaries)
+library(maps)
+library(sf)
+library(leaflet)
+library(rgdal)
+library(fiftystater)
+library(readxl)
+
+
+##Part 1: Graphs on percent of farmer's markets that accept various food aid
+#Grouping by state and what-not, summarizing state data into an average instead of per county
+farm_market <- read_excel("farm.market.xlsx")
+
+sum_farm_support <- farm_market%>% 
+                        group_by(State) %>% 
+                        summarize(mean_SNAP = mean(PCT_FMRKT_SNAP16), mean_WICCASH = mean(PCT_FMRKT_WICCASH16), mean_SFNMP = mean(PCT_FMRKT_SFMNP16), mean_WIC = mean(PCT_FMRKT_WIC16)) 
+sum_farm_support[is.na(sum_farm_support)]<-0
+
+
+#Data tidying to be able to make graphs
+
+support_tidy <- gather(data = sum_farm_support, 
+                    key = Type ,
+                    value = Percent,
+                    -State)
+
+#Plotting graphs
+ggplot(data = support_tidy, mapping = aes(x = Type, y = Percent, fill = Type)) +
+  geom_col() +
+  facet_wrap(~ State) +
+  theme(axis.text.x=element_blank(),
+        axis.ticks.x=element_blank() ,
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+
+
+##Part 2: Graphing map of food insecure states
+#Grouping data by states, I included both food insecure and very food insecure, but only ended up using food insecure data, so I can take that out later
+DTAA2 <- read_xlsx("DTAA2.xlsx")
+by_state <- DTAA2 %>%
+            group_by(State) %>%
+            summarize(mean_insecure = mean(FOODINSEC_13_15),
+                      mean_accessibility = mean(PCT_LACCESS_POP15, na.rm = TRUE))
+
+#Found away to make a better map by using a package called 'fiftystater'
+#Creating sf by using data from 'fiftystater' package
+data("fifty_states")
+as_tibble(fifty_states)
+st_as_sf(fifty_states, coords = c("long", "lat"))
+# convert fifty_states to an sf data frame
+(sf_fifty <- st_as_sf(fifty_states, coords = c("long", "lat")) %>% 
+   # convert sets of points to polygons
+   group_by(id, piece) %>% 
+   summarize(do_union = FALSE) %>%
+   st_cast("POLYGON") %>%
+   # convert polygons to multipolygons for states with discontinuous regions
+   group_by(id) %>%
+   summarize())
+st_crs(sf_fifty) <- 4326
+
+#Changing state names into abbreviations so that I can merge tidycensus data and data I found
+sf_fifty$id<- c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY")
+
+#Joining insecurity data with shape file
+sum_state <- sf_fifty%>% 
+  inner_join(by_state, by = c("id" = "State"))
+
+#Creating three tiers of insecurity to be reflected on graph
+sum_state <- sum_state %>%
+  mutate(mean_insecure = cut_number(mean_insecure, 3))
+ 
+#Graphing Insecurity
+ggplot() +
+  geom_sf(data = sum_state, aes(fill = mean_insecure), size = 0.5) +
+  labs(fill = "mean")  +
+  scale_fill_brewer(palette = "YlOrRd")
+
+#Creating three tiers of accessibility to be reflected on graph
+sum_state <- sum_state %>%
+  mutate(mean_accessibility = cut_number(mean_accessibility, 3))
+
+#Graphing Accessibility
+ggplot() +
+  geom_sf(data = sum_state, aes(fill = mean_accessibility), size = 0.5) +
+  labs(fill = "mean")  +
+  scale_fill_brewer(palette = "Greens")
+
+
+```
+
+
+# SECTION NAME
+
+Write your blog post here.

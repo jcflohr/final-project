@@ -29,10 +29,10 @@ library(ggplot2)
 library(leaflet)
 library(sf)
 library(leaflet.extras)
-
-# Data import for chart
-ag_productivity <- read.csv("ag_productivity.csv",
-                            stringsAsFactors=FALSE)
+library(readxl)
+library(maps)
+library(rgdal)
+library(fiftystater)
 
 # Data import for the leaflet map
 farmers_markets <- read.csv("farmers_markets.csv",
@@ -75,18 +75,64 @@ leaflet(farmers_markets) %>%
   addResetMapButton()
 ```
 
-# US Agricultural Productivity
+# Accessibility and Insecurity
 
 ```{r}
-ggplot(ag_productivity, aes(x = Year)) +
-  labs(title = "US Agricultural Productivity", 
-       x = "Year", y = "Productivity increase per year") +
-  geom_line(aes(y = Total_output, color = "Total output")) +
-  geom_line(aes(y = Livestock_and_products_All, 
-                color = "Livestock and products")) +
-  geom_line(aes(y = Crops_All, color = "Agricultural crops"))
+# Graphing map of food insecure states
+# group data by states, including   both food insecure and very food insecure, but only ended up using food insecure data, so I can take that out later
 
+# import Excel data
+DTAA2 <- read_xlsx("DTAA2.xlsx")
+
+by_state <- DTAA2 %>%
+            group_by(State) %>%
+            summarize(mean_insecure = mean(FOODINSEC_13_15),
+                      mean_accessibility = mean(PCT_LACCESS_POP15, na.rm = TRUE))
+
+#Creating sf by using data from 'fiftystater' package
+sts_as_sf <- st_as_sf(fifty_states, coords = c("long", "lat"))
+
+# convert fifty_states to an sf data frame
+states <- (sf_fifty <- st_as_sf(fifty_states, coords = c("long", "lat")) %>% 
+   # convert sets of points to polygons
+   group_by(id, piece) %>% 
+   summarize(do_union = FALSE) %>%
+   st_cast("POLYGON") %>%
+   # convert polygons to multipolygons for states with discontinuous regions
+   group_by(id) %>%
+   summarize())
+st_crs(sf_fifty) <- 4326
+
+#Changing state names into abbreviations so that I can merge tidycensus data and data I found
+sf_fifty$id<- c("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY")
+
+#Joining insecurity data with shape file
+sum_state <- sf_fifty%>% 
+  inner_join(by_state, by = c("id" = "State"))
+
+#Creating three tiers of insecurity to be reflected on graph
+sum_state <- sum_state %>%
+  mutate(mean_insecure = cut_number(mean_insecure, 3))
+ 
+#Graphing Insecurity
+ggplot() +
+  geom_sf(data = sum_state, aes(fill = mean_insecure), size = 0.5) +
+  labs(fill = "mean", title = "Food Insecurity")  +
+  scale_fill_brewer(palette = "YlOrRd")
+
+#Creating three tiers of accessibility to be reflected on graph
+sum_state <- sum_state %>%
+  mutate(mean_accessibility = cut_number(mean_accessibility, 3))
+
+#Graphing Accessibility
+ggplot() +
+  geom_sf(data = sum_state, aes(fill = mean_accessibility), size = 0.5) +
+  labs(fill = "mean", title = "Food Accessibility")  +
+  scale_fill_brewer(palette = "Greens")
 ```
+
+# State Breakdown
+
 ```{r}
 # Graphs on percent of farmer's markets that accept various food aid
 # Group by state, summarize state data into an average instead of per county
@@ -95,27 +141,27 @@ ggplot(ag_productivity, aes(x = Year)) +
 farm_market <- read_excel("farm.market.xlsx")
 
 # summarize support programs a farmers market accepts
-sum_farm_support <- farm_market %>% 
+sum_farm_support <- farm_market%>% 
   group_by(State) %>% 
   summarize(mean_SNAP = mean(PCT_FMRKT_SNAP16), 
             mean_WICCASH = mean(PCT_FMRKT_WICCASH16), 
             mean_SFNMP = mean(PCT_FMRKT_SFMNP16), 
-            mean_WIC = mean(PCT_FMRKT_WIC16))
+            mean_WIC = mean(PCT_FMRKT_WIC16)) 
+
 sum_farm_support[is.na(sum_farm_support)]<-0
 
 # tidy farm support data to be able to make graphs
 support_tidy <- gather(data = sum_farm_support, 
-                       key = Type ,
+                       key = Type,
                        value = Percent,
-                       -State) 
+                       -State)
 
 # plotting graphs
-ggplot(data = support_tidy,
-       mapping = aes(x = Type, y = Percent, fill = Type)) +
+ggplot(support_tidy, aes(x = Type, y = Percent, fill = Type)) +
   geom_col() +
   facet_wrap(~ State) +
   theme(axis.text.x=element_blank(),
-        axis.ticks.x=element_blank(),
+        axis.ticks.x=element_blank() ,
         axis.text.y=element_blank(),
         axis.ticks.y=element_blank())
 ```
