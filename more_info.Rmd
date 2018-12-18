@@ -116,20 +116,24 @@ sum_state <- sf_fifty%>%
 sum_state <- sum_state %>%
   mutate(mean_insecure = cut_number(mean_insecure, 3))
  
-#Graphing Insecurity
+# Graphing insecurity
 ggplot() +
   geom_sf(data = sum_state, aes(fill = mean_insecure), size = 0.5) +
-  labs(fill = "mean", title = "Food Insecurity")  +
+  labs(x = "Latitude", y = "Longitude", 
+       title = "Percent of the Population that is Food Insecure Per State",  
+       fill = "Percentage")  +
   scale_fill_brewer(palette = "YlOrRd")
 
-#Creating three tiers of accessibility to be reflected on graph
+# Creating three tiers of accessibility to be reflected on graph
 sum_state <- sum_state %>%
   mutate(mean_accessibility = cut_number(mean_accessibility, 3))
 
-#Graphing Accessibility
+# Graphing accessibility
 ggplot() +
   geom_sf(data = sum_state, aes(fill = mean_accessibility), size = 0.5) +
-  labs(fill = "mean", title = "Food Accessibility")  +
+  labs(x = "Latitude", y = "Longitude", 
+       title = "Percent of Population that Has Low Access to Food By State",  
+       fill = "Percentage") +
   scale_fill_brewer(palette = "Greens")
 ```
 
@@ -145,26 +149,32 @@ farm_market <- read_excel("farm.market.xlsx")
 # summarize support programs a farmers market accepts
 sum_farm_support <- farm_market%>% 
   group_by(State) %>% 
-  summarize(mean_SNAP = mean(PCT_FMRKT_SNAP16), 
-            mean_WICCASH = mean(PCT_FMRKT_WICCASH16), 
-            mean_SFNMP = mean(PCT_FMRKT_SFMNP16), 
-            mean_WIC = mean(PCT_FMRKT_WIC16)) 
+  summarize(SNAP = mean(PCT_FMRKT_SNAP16), 
+            WICCASH = mean(PCT_FMRKT_WICCASH16), 
+            SFNMP = mean(PCT_FMRKT_SFMNP16), 
+            WIC = mean(PCT_FMRKT_WIC16)) 
 
 sum_farm_support[is.na(sum_farm_support)]<-0
 
-# tidy farm support data to be able to make graphs
+# Tidy farm support data to be able to make graphs
 support_tidy <- gather(data = sum_farm_support, 
                        key = Type,
                        value = Percent,
                        -State)
 
-# plotting graphs
-ggplot(support_tidy, aes(x = Type, y = Percent, fill = Type)) +
+# Filtering data for states which present the most visually
+filter_support <- support_tidy %>% 
+                  filter(State %in% c("CT", "DC", "MA", "MD", "ME", "NH", "NJ",
+                                      "NY", "RI", "VT"))
+
+# Plotting graphs
+ggplot(data = filter_support, mapping = aes(x = Type, y = Percent, fill = Type)) +
   geom_col() +
   facet_wrap(~ State) +
   theme(axis.text.x=element_blank(),
-        axis.ticks.x=element_blank() ,
-        axis.text.y=element_blank(),
-        axis.ticks.y=element_blank())
+        axis.ticks.x=element_blank()) +
+  labs(x = " ", y = "Percent of Farmer's Markets", 
+       title = "Percent of Farmer's Markets that Accept Food Assistance By State",
+       fill = "Type of Food Assistance")
 ```
 
