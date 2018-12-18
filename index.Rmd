@@ -36,7 +36,7 @@ ag_productivity <- read.csv("ag_productivity.csv",
 # Plot farm output against labor and capital input
 ggplot(ag_productivity, aes(x = Year)) +
   labs(title = "US Agricultural Productivity", 
-       x = "Year", y = "Change per year") +
+       x = "Year", y = "Change per year", color = " ") +
   geom_line(aes(y = Total_output, color = "Total farm product output")) +
   geom_line(aes(y = Labor_input_All, color = "Labor input")) +
   geom_line(aes(y = Capital_input_All, color = "Capital input"))
