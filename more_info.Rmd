@@ -186,4 +186,6 @@ ggplot(data = filter_support, mapping = aes(x = Type, y = Percent, fill = Type))
        title = "Percent of Farmer's Markets that Accept Food Assistance By State",
        fill = "Type of Food Assistance")
 ```
+
+
 The graph above depicts the percentage of farmers markets that accept various forms of food assistance programs, again using data from the USDA's programs and surveys, in the states with any significant data. It is evident from the graph that in states with large metropolitan areas, such as Washington D.C. and Massachusetts, food assistance programs are more widely accepted. It is important to establish the infrastructure necessary to allowing all farmers markets to accept food supplement programs because it would allow for fresh, locally sourced produce to become widely available to even those in the remotest parts of the country. While the USDA and NIFA are concerned with these efforts today, it is crucial today, where healthcare and living wages are uncertain, to remember to provide key programs to those who need them most.
