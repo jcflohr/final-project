@@ -20,10 +20,6 @@ knitr::opts_chunk$set(
 )
 ```
 
-<!--
-Comments in HTML are like this! 
--->
-
 ```{r}
 # Load necessary packages
 library(tidyverse)
@@ -64,6 +60,11 @@ pal <- colorFactor(palette=c("red", "orange", "yellow",
 
 # Farmers Markets
 
+Farmers markets are one solution to bringing increased access to fresh produce to areas that lack grocery stores or as an alternative mean to accessing farm goods. The seasonality of farmers markets can present an issue; however, government subsidies provide vendors the financial means to travel to more urban areas.
+
+It is important that people have access to farmers markets that accept food stamps because farmers markets are often the most accessible and reliable way to get guaranteed fresh food in urban centers. Farmers markets are also more sustainable and environmentally friendly, as they tend to sell locally sourced goods and produce, which minimizes the need for transportation and processing.
+
+
 ```{r}
 leaflet(farmers_markets) %>% 
   addProviderTiles("Esri") %>% 
@@ -76,8 +77,12 @@ leaflet(farmers_markets) %>%
             values = c("0", "1", "2", "3", "4+")) %>%
   addResetMapButton()
 ```
+The leaflet map above plots the location of various farmers markets throughout the United States using data from the USDA's Local Food Research and Development studies^[“Farmers Markets and Direct-to-Consumer Marketing.” USDA Agricultural Marketing Service, USDA, Accessed 5 December 2018, https://www.ams.usda.gov/services/local-regional/farmers-markets-and-direct-consumer-marketing.], with the added feature of being able to toggle between amount of food assistance programs which are accepted and the amount of food essentials (fruits, vegetables, grains, and meat) which are sold at the respective farmers markets. It is evident from the map that relatively few farmers markets throughout the country accept food assistance programs, and those that do are primarily in urban centers. However, a number of these urban markets also do not sell many food essentials, with a significant number focusing on luxury goods and crafts.
+
 
 # Insecurity and Accessibility
+
+The percentage of citizens who are food insecure, or do not have regular access to healthy foods, is mapped in the orange map below, using data from the USDA's Food Access Research Atlas^[“Food Access Research Atlas.” USDA ERS, USDA, Accessed 5 December 2018, https://www.ers.usda.gov/data-products/food-access-research-atlas/documentation/.]. The darker states denote those states with a higher population of food insecure citizens. Food insecurity is often traced back to the absence of stable financial means, such as consistent employment; however, it can also be a result of inaccessibility to fresh produce, particularly in states with larger rural populations. The figure green map below displays the percentage of Americans in each state that have low access to food, denoting that people in these states live further than ½ mile in Urban Areas and 10 miles in Rural areas from the closest supermarket. Food accessibility has a large effect on a person’s ability to purchase produce, for if they have to spend money on transportation it detracts from the overall funds that the person has to purchase groceries. As the graph reflects, the states that face the lowest food accessibility are those of the Western states, such as Texas and Montana,  where the rural population is larger than that of their Eastern counterparts.
 
 ```{r}
 # Graphing map of food insecure states
@@ -132,12 +137,16 @@ sum_state <- sum_state %>%
 ggplot() +
   geom_sf(data = sum_state, aes(fill = mean_accessibility), size = 0.5) +
   labs(x = "Latitude", y = "Longitude", 
-       title = "Percent of Population that Has Low Access to Food By State",  
+       title = "Percent of Population that Has Low Access to Food Per State",  
        fill = "Percentage") +
   scale_fill_brewer(palette = "Greens")
 ```
 
+As reflected in the graph, states that have large rural populations often have more citizens who are food insecure, such as Nebraska and Alabama. Although there is some overlap between states that have large populations of people who are both food insecure and have low food accessibility, as seen on the green map below, it cannot be definitely stated that accessibility is the only factor in the causation of food insecurity. Farmers markets would aid the lack of food accessibility and food insecurity  because they are mobile, which allows for the producers to reach a larger consumer base due to the flexibility of their locations, and locally sourced, which allows for the distribution of farm fresh goods. 
+
 # State Breakdown
+
+One way to increase accessibility is through food assistance programs. Funding from USDA’s National Institute of Food and Agriculture (NIFA) supports many food and nutrition assistance programs that provide low-income households access to food, as well as to diet and nutritional education. Three such programs are the Food Insecurity Nutrition Incentive (FINI), Community Food Projects (CFP), and the Expanded Food and Nutrition Education Program (EFNEP)^[Eblen, Denise. “NIFA Programs Key to Reducing US Household Food Insecurity.” USDA, 12 October 2016, https://www.usda.gov/media/blog/2016/10/12/nifa-programs-key-reducing-us-household-food-insecurity.]. FINI also supports projects that increase food stamp program participants’ access to fresh foods. These projects work with farmers markets and local grocers to enable fresh farm produce to be sold to Supplemental Nutrition Assistance Program (SNAP), Senior Farmers Market Nutrition Program(SFMNP), and Women, Infants, and Children (WIC) participants.
 
 ```{r}
 # Graphs on percent of farmer's markets that accept various food aid
@@ -177,4 +186,4 @@ ggplot(data = filter_support, mapping = aes(x = Type, y = Percent, fill = Type))
        title = "Percent of Farmer's Markets that Accept Food Assistance By State",
        fill = "Type of Food Assistance")
 ```
-
+The graph above depicts the percentage of farmers markets that accept various forms of food assistance programs, again using data from the USDA's programs and surveys, in the states with any significant data. It is evident from the graph that in states with large metropolitan areas, such as Washington D.C. and Massachusetts, food assistance programs are more widely accepted. It is important to establish the infrastructure necessary to allowing all farmers markets to accept food supplement programs because it would allow for fresh, locally sourced produce to become widely available to even those in the remotest parts of the country. While the USDA and NIFA are concerned with these efforts today, it is crucial today, where healthcare and living wages are uncertain, to remember to provide key programs to those who need them most.
