@@ -62,7 +62,7 @@ pal <- colorFactor(palette=c("red", "orange", "yellow",
 
 Farmers markets are one solution to bringing increased access to fresh produce to areas that lack grocery stores or as an alternative mean to accessing farm goods. The seasonality of farmers markets can present an issue; however, government subsidies provide vendors the financial means to travel to more urban areas.
 
-It is important that people have access to farmers markets that accept food stamps because farmers markets are often the most accessible and reliable way to get guaranteed fresh food in urban centers. Farmers markets are also more sustainable and environmentally friendly, as they tend to sell locally sourced goods and produce, which minimizes the need for transportation and processing.
+It is important that people have access to farmers markets that accept food stamps because farmers markets are often the most accessible and reliable way to get guaranteed fresh food in urban centers. Farmers markets are also more sustainable and environmentally friendly, as they tend to sell locally sourced goods and produce, which minimizes the need for transportation and processing^[“Farmers Markets and Direct-to-Consumer Marketing.” USDA Agricultural Marketing Service, USDA, Accessed 5 December 2018, https://www.ams.usda.gov/services/local-regional/farmers-markets-and-direct-consumer-marketing.].
 
 
 ```{r}
